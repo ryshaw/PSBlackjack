@@ -1,7 +1,7 @@
 Write-Host "-----"
 Write-Host "Welcome to Blackjack in PowerShell!"
 Write-Host "-----"
-Write-Host 'Initializing starting balance of $100...'
+Write-Host 'Your starting balance today is $100!'
 Write-Host "-----"
 $balance = 100
 
@@ -13,25 +13,71 @@ Write-Host "State your bet! Minimum is `$2, maximum is `$$balance"
 Write-Host "Type in your bet below or hit Enter for default bet of `$5"
 
 do {
+    $acceptableBet = $true
+
     try {
         $bet = Read-Host "Enter your bet"
-        $bet.ToInt32()
         if ($bet -eq "") {
             $bet = 5
         }
-        [int]$bet = Read-Host "Enter your bet"
+        $bet = [int]$bet
     }
     catch {
-        Write-Host "Unable to accept input, defaulting to bet of `$5"
+        $acceptableBet = $false
     }
-    Write-Host $bet
-} until (($bet -ge 2) -and ($bet -le 100))
+
+    if (($bet -lt 2) -or ($bet -gt 100)) {
+        $acceptableBet = $false
+    }
+
+    if (!$acceptableBet) {
+        Write-Host "Incorrect input, enter an integer between 2 and $balance"
+    }
+} until ($acceptableBet)
+
 
 $dealerCards = (Get-Card), (Get-Card)
-Write-Host $dealerCards
+
+for ($i = 0; $i -lt 10; $i++) {
+    $playerCards = (Get-Card), (Get-Card)
+    Write-Host $playerCards
+    Get-CardValue -Cards $playerCards
+}
 
 function Get-Card {
+    [CmdletBinding()]
     $random = Get-Random -InputObject $deck
     $deck.Remove($random)
     return $random
+}
+
+function Get-CardValue {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        $Cards
+    )
+    
+    $sum = 0
+    $numAces = 0
+    foreach ($card in $cards) {
+        if ($card.GetType().Name -eq "Int32") {
+            $sum += $card
+        }
+        else {
+            if ($card -eq "A") {
+                $numAces += 1
+            }
+            else {
+                $sum += 10
+            }
+        }
+    }
+
+    $sum += $numAces
+    if (($numAces -ge 1) -and ($sum -le 11)) {
+        $sum += 10
+    }
+
+    return $sum
 }
