@@ -1,3 +1,55 @@
+<#
+.SYNOPSIS
+    Removes a random card from the $deck variable and returns it.
+.EXAMPLE
+    Get-Card
+    Returns the number 7, or string "K", or the number 2, etc.
+#>
+function Get-Card {
+    [CmdletBinding()]
+    $random = Get-Random -InputObject $deck
+    $deck.Remove($random)
+    return $random
+}
+
+<#
+.SYNOPSIS
+    Takes a list of cards and returns the total value of that hand.
+.EXAMPLE
+    Get-CardValue 7, "K", 2
+    "K" equals 10 so returns 
+#>
+function Get-CardValue {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        $Cards
+    )
+    
+    $sum = 0
+    $numAces = 0
+    foreach ($card in $Cards) {
+        if ($card.GetType().Name -eq "Int32") {
+            $sum += $card
+        }
+        else {
+            if ($card -eq "A") {
+                $numAces += 1
+            }
+            else {
+                $sum += 10
+            }
+        }
+    }
+
+    $sum += $numAces
+    if (($numAces -ge 1) -and ($sum -le 11)) {
+        $sum += 10
+    }
+
+    return $sum
+}
+
 Write-Host "-----"
 Write-Host "Welcome to Blackjack in PowerShell!"
 Write-Host "-----"
@@ -42,42 +94,4 @@ for ($i = 0; $i -lt 10; $i++) {
     $playerCards = (Get-Card), (Get-Card)
     Write-Host $playerCards
     Get-CardValue -Cards $playerCards
-}
-
-function Get-Card {
-    [CmdletBinding()]
-    $random = Get-Random -InputObject $deck
-    $deck.Remove($random)
-    return $random
-}
-
-function Get-CardValue {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory)]
-        $Cards
-    )
-    
-    $sum = 0
-    $numAces = 0
-    foreach ($card in $cards) {
-        if ($card.GetType().Name -eq "Int32") {
-            $sum += $card
-        }
-        else {
-            if ($card -eq "A") {
-                $numAces += 1
-            }
-            else {
-                $sum += 10
-            }
-        }
-    }
-
-    $sum += $numAces
-    if (($numAces -ge 1) -and ($sum -le 11)) {
-        $sum += 10
-    }
-
-    return $sum
 }
