@@ -17,7 +17,16 @@ function Get-Card {
     Takes a list of cards and returns the total value of that hand.
 .EXAMPLE
     Get-CardValue 7, "K", 2
-    "K" equals 10 so returns 
+    Number cards are worth their number, face cards are worth 10. This would return 7 + 10 + 2, or 19.
+
+    Get-CardValue 5, "A"
+    Aces are worth 11, unless the total would go over 21, in which case they are worth 1. 5 + 11 equals 16 which is not over 21, so this would return 16.
+
+    Get-CardValue 8, "A", "A"
+    One ace would be worth 11 and the other would be worth 1 as to not put the total over 21. This would return 8 + 11 + 1, or 20.
+
+    Get-CardValue "J", 6, "A", "A", "A"
+    Jack is worth 10, and each of the Aces are worth 1 because the total would go over 21 if any of them were 11. This would return 10 + 6 + 1 + 1 + 1, or 19.
 #>
 function Get-CardValue {
     [CmdletBinding()]
@@ -29,9 +38,11 @@ function Get-CardValue {
     $sum = 0
     $numAces = 0
     foreach ($card in $Cards) {
+        # if card is a number, just add that number
         if ($card.GetType().Name -eq "Int32") {
             $sum += $card
         }
+        # otherwise, either an Ace or a face card
         else {
             if ($card -eq "A") {
                 $numAces += 1
@@ -42,7 +53,13 @@ function Get-CardValue {
         }
     }
 
+    # each Ace is worth at least 1, so add 1 to the sum for each Ace
     $sum += $numAces
+
+    # now, if the sum won't go over 21, 
+    # we can change an Ace from 1 to 11 by adding 10. 
+    # note that we will never have two Aces being worth 11, 
+    # because that would go over 21.
     if (($numAces -ge 1) -and ($sum -le 11)) {
         $sum += 10
     }
@@ -64,34 +81,60 @@ $faceCards = "J", "Q", "K", "A"
 Write-Host "State your bet! Minimum is `$2, maximum is `$$balance"
 Write-Host "Type in your bet below or hit Enter for default bet of `$5"
 
+# read input from user to determine bet
 do {
     $acceptableBet = $true
 
     try {
         $bet = Read-Host "Enter your bet"
+        # user entered nothing, so default to 5
         if ($bet -eq "") {
             $bet = 5
         }
+        # try to change input string into an int.
+        # if player entered a string, this will error
+        # and will be caught below.
         $bet = [int]$bet
     }
     catch {
+        # player entered something other than a number
         $acceptableBet = $false
     }
 
-    if (($bet -lt 2) -or ($bet -gt 100)) {
+    # player did not enter a bet in correct range
+    if (($bet -lt 2) -or ($bet -gt $balance)) {
         $acceptableBet = $false
     }
 
+    # make player try again
     if (!$acceptableBet) {
         Write-Host "Incorrect input, enter an integer between 2 and $balance"
     }
 } until ($acceptableBet)
 
+Write-Host "Starting round with a bet of `$$bet..."
+Write-Host "---"
+$playerCards = (Get-Card)
+$playerValue = (Get-CardValue $playerCards)
+Write-Host "Your first card is $playerCards (value: $playerValue)"
 
-$dealerCards = (Get-Card), (Get-Card)
+$dealerCards = (Get-Card)
+$dealerValue = (Get-CardValue $dealerCards)
+Write-Host "And the dealer's first card is $dealerCards (value: $dealerValue)"
 
-for ($i = 0; $i -lt 10; $i++) {
-    $playerCards = (Get-Card), (Get-Card)
-    Write-Host $playerCards
-    Get-CardValue -Cards $playerCards
+$playerCards = $playerCards, (Get-Card)
+Write-Host "Your second card is $($playerCards[1]) (value: $(Get-CardValue $playerCards[1]))"
+
+$playerValue = (Get-CardValue $playerCards)
+Write-Host "Your hand is $($playerCards -join ", "); total value is $playerValue"
+
+$dealerCards = $dealerCards, (Get-Card)
+Write-Host "The dealer draws a second card, but keeps it face down."
+
+if ($playerValue -eq 21) {
+    Write-Host "You win!"
+}
+else {
+    "Your hand's value is $playerValue. Hit or stand?"
+    Read-Host "Hit or stand"
 }
