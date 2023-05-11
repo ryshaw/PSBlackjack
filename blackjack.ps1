@@ -79,7 +79,7 @@ $faceCards = "J", "Q", "K", "A"
 [System.Collections.ArrayList] $deck = $numCards * 4 + $faceCards * 4
 
 Write-Host "State your bet! Minimum is `$2, maximum is `$$balance"
-Write-Host "Type in your bet below or hit Enter for default bet of `$5"
+Write-Host "Type in a dollar amount below or hit Enter for default bet of `$5"
 
 # read input from user to determine bet
 do {
@@ -114,27 +114,51 @@ do {
 
 Write-Host "Starting round with a bet of `$$bet..."
 Write-Host "---"
-$playerCards = (Get-Card)
-$playerValue = (Get-CardValue $playerCards)
-Write-Host "Your first card is $playerCards (value: $playerValue)"
 
+$playerCards = (Get-Card)
 $dealerCards = (Get-Card)
-$dealerValue = (Get-CardValue $dealerCards)
-Write-Host "And the dealer's first card is $dealerCards (value: $dealerValue)"
+Write-Host "Your first card is $playerCards, and the dealer's first card is $dealerCards"
 
 $playerCards = $playerCards, (Get-Card)
-Write-Host "Your second card is $($playerCards[1]) (value: $(Get-CardValue $playerCards[1]))"
-
-$playerValue = (Get-CardValue $playerCards)
-Write-Host "Your hand is $($playerCards -join ", "); total value is $playerValue"
-
 $dealerCards = $dealerCards, (Get-Card)
-Write-Host "The dealer draws a second card, but keeps it face down."
+Write-Host "Your second card is $($playerCards[1]), and the dealer's second card is face down"
+
+Write-Host "---"
+$playerValue = (Get-CardValue $playerCards)
+Write-Host "Your hand is $($playerCards -join " and "); total value is $playerValue"
+
 
 if ($playerValue -eq 21) {
-    Write-Host "You win!"
+    Write-Host "Blackjack!!"
+    Write-Host "Let's check the dealer's hand..."
+    $dealerValue = (Get-CardValue $dealerCards)
+    Write-Host "The dealer has $($dealerCards -join " and "); total value is $dealerValue"
+    if ($dealerValue -eq 21) {
+        Write-Host "It's a stand-off!! Your bet is returned to you, and nobody wins"
+        Write-Host "---"
+        Write-Host "Balance is `$$balance"
+    }
+    else {
+        Write-Host "You win!! You get 1.5 times your wager!"
+        $balance += $bet * 1.5
+        Write-Host "---"
+        Write-Host "Balance is `$$balance"
+    }
 }
 else {
-    "Your hand's value is $playerValue. Hit or stand?"
-    Read-Host "Hit or stand"
+    Write-Host "Your hand's value is $playerValue. Hit or stand?"
+    Write-Host "Type 1, 'h', or 'hit' to hit, or type 2, 's', or 'stand' to stand"
+    $acceptableChoice = $true
+
+    do {
+        try {
+            $choice = Read-Host "Hit or stand"
+            if 
+        }
+        catch {
+            $acceptableChoice = $false
+        }
+    } until ($acceptableChoice)
+
+
 }
