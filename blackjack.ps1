@@ -148,17 +148,22 @@ if ($playerValue -eq 21) {
 else {
     Write-Host "Your hand's value is $playerValue. Hit or stand?"
     Write-Host "Type 1, 'h', or 'hit' to hit, or type 2, 's', or 'stand' to stand"
-    $acceptableChoice = $true
 
     do {
+        $acceptableChoice = $true
         try {
             $choice = Read-Host "Hit or stand"
-            if 
+            $hit = ($choice -eq "1") -or ($choice -eq "h") -or ($choice -eq "hit")
+            $stand = ($choice -eq "2") -or ($choice -eq "s") -or ($choice -eq "stand")
+            if ((-not $hit) -and (-not $stand)) {
+                $acceptableChoice = $false
+            }
         }
         catch {
             $acceptableChoice = $false
         }
+        if (-not $acceptableChoice) {
+            Write-Host "Try again: type 1, h, hit, or 2, s, stand"
+        }
     } until ($acceptableChoice)
-
-
 }
