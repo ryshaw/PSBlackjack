@@ -150,20 +150,30 @@ else {
     Write-Host "Type 1, 'h', or 'hit' to hit, or type 2, 's', or 'stand' to stand"
 
     do {
-        $acceptableChoice = $true
-        try {
-            $choice = Read-Host "Hit or stand"
-            $hit = ($choice -eq "1") -or ($choice -eq "h") -or ($choice -eq "hit")
-            $stand = ($choice -eq "2") -or ($choice -eq "s") -or ($choice -eq "stand")
-            if ((-not $hit) -and (-not $stand)) {
+        do {
+            $acceptableChoice = $true
+            try {
+                $choice = Read-Host "Hit or stand"
+                $hit = ($choice -eq "1") -or ($choice -eq "h") -or ($choice -eq "hit")
+                $stand = ($choice -eq "2") -or ($choice -eq "s") -or ($choice -eq "stand")
+                if ((-not $hit) -and (-not $stand)) {
+                    $acceptableChoice = $false
+                }
+            }
+            catch {
                 $acceptableChoice = $false
             }
+            if (-not $acceptableChoice) {
+                Write-Host "Try again: type 1, h, hit, or 2, s, stand"
+            }
+        } until ($acceptableChoice)
+
+        if ($hit) {
+            $playerCards += (Get-Card)
+            Write-Host $playerCards
+            Write-Host "You draw a $($playerCards[-1])!"
+            $playerValue = (Get-CardValue $playerCards)
+            Write-Host "Your hand is $($playerCards -join ", "); total value is $playerValue"
         }
-        catch {
-            $acceptableChoice = $false
-        }
-        if (-not $acceptableChoice) {
-            Write-Host "Try again: type 1, h, hit, or 2, s, stand"
-        }
-    } until ($acceptableChoice)
+    } until ($stand)
 }
